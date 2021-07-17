@@ -57,6 +57,7 @@ router.post('/', [
             // Save the user into the database
             await user.save();
 
+            // Implement JWT
             const payload = {
                 user : {
                     id : user.id
@@ -75,7 +76,7 @@ router.post('/', [
         }
         catch (err) {
             console.log(err.message);
-            res.status(500).send('Server error');
+            res.status(500).send('Server Error');
         }
 
     }
