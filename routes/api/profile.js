@@ -1,4 +1,5 @@
 const express = require('express');
+const { check, validationResult } = require('express-validator');
 const router = express.Router();
 const auth = require('../../middleware/auth');
 
@@ -10,7 +11,7 @@ const Profile = require('../../models/Profile');
 //@access   Private
 router.get('/me', auth, async (req, res) => {
     try{
-        //Check if the profile is available for the current user
+        // Check if the profile is available for the current user
         const profile = await Profile.findOne({ user : req.user.id }).populate('user', ['name', 'avatar']);
 
         // If not, send message
@@ -26,5 +27,77 @@ router.get('/me', auth, async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
+
+//@route    POST api/profile
+//@desc     Create or update user profile
+//@access   Private
+router.post('/', [ auth, [
+    // status and skills are required fields
+    check('status', 'Status is required').not().isEmpty(),
+    check('skills', 'Skills are required').not().isEmpty()
+] ], async (req, res) => {
+
+        // Check if there is any error in the required fields
+        const errors = validationResult(req);
+
+        // If yes, then display the errors
+        if(!errors.isEmpty()){
+            return res.status(400).json({ errors : errors.array() });
+        }
+
+        // If not, then get data from the request body
+        const { company, website, location, bio, status, githubusername, skills, youtube, facebook, twitter, instagram, linkedin } = req.body;
+
+        // Build profileFields object to save the data from request
+        const profileFields = {};
+        profileFields.user = req.user.id;
+        if(company) profileFields.company = company;
+        if(website) profileFields.website = website;
+        if(location) profileFields.location = location;
+        if(bio) profileFields.bio = bio;
+        if(status) profileFields.status = status;
+        if(githubusername) profileFields.githubusername = githubusername;
+        if(skills) {
+            profileFields.skills = skills.split(',').map(skill => skill.trim());
+        }
+
+        // Build social object in profileFields
+        profileFields.social = {};
+        if(youtube) profileFields.social.youtube = youtube;
+        if(twitter) profileFields.social.twitter = twitter;
+        if(facebook) profileFields.social.facebook = facebook;
+        if(linkedin) profileFields.social.linkedin = linkedin;
+        if(instagram) profileFields.social.instagram = instagram;
+
+        // Use try catch block to create or update the profile
+        try{
+            // Check if profile already exists
+            let profile = await Profile.findOne({ user : req.user.id });
+
+            // If it exist, then UPDATE it
+            if(profile){
+                //Update
+                profile = await Profile.findOneAndUpdate( { user : req.user.id }, { $set : profileFields }, { new : true } );
+
+                // Return the updated profile
+                return res.json(profile);
+            }
+
+            // If it does not exist, then CREATE a new profile
+            profile = new Profile(profileFields);
+
+            // Save the profile
+            await profile.save();
+
+            // Return the new created profile
+            res.json(profile);
+        }
+        catch(err){
+            console.log(err.message);
+            res.status(500).send('Server Error');
+        }
+    }
+);
 
 module.exports = router;
