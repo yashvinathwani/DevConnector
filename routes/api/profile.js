@@ -4,7 +4,7 @@ const router = express.Router();
 const auth = require('../../middleware/auth');
 
 const Profile = require('../../models/Profile');
-// const User = require('../../models/User');
+const User = require('../../models/User');
 
 //@route    GET api/profile/me
 //@desc     Get current user's profile
@@ -146,5 +146,29 @@ router.get('/user/:user_id', async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
+
+//@route    DELETE api/profile
+//@desc     Delete profile, user and posts
+//@access   Private
+router.delete('/', auth, async (req, res) => {
+    try {
+        // @todo - delete user's posts
+
+        // Delete profile
+        await Profile.findOneAndRemove({ user : req.user.id });
+
+        // Delete user
+        await User.findOneAndRemove({ _id : req.user.id });
+
+        // Display the message
+        res.json({ msg : 'Deletion successful' });
+    } 
+    catch (err) {
+        console.log(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 
 module.exports = router;
