@@ -41,4 +41,88 @@ router.post('/', [auth, [
     }
 });
 
+
+//@route    GET api/posts
+//@desc     Get all posts
+//@access   Private
+router.get('/', auth, async (req, res) => {
+    try{
+        // Get post in asc order, for desc do 1
+        const posts = await Post.find().sort({ date : -1 });
+
+        // If there are no posts send msg
+        if(!posts)
+            return res.status(404).json({ msg : 'There is no post in the feed' });
+
+        // Else send all the posts(Newest first)
+        res.json(posts);
+    }
+    catch(err){
+        console.log(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+
+//@route    GET api/posts/:id
+//@desc     Get post by id
+//@access   Private
+router.get('/:id', auth, async (req, res) => {
+    try{
+        // Find the post by id
+        const post = await Post.findById(req.params.id);
+
+        // If not found, then send msg
+        if(!post)
+            return res.status(404).json({ msg : 'Post not found' });
+
+        // Else send post
+        res.json(post);
+    }
+    catch(err){
+        console.log(err.message);
+
+        // If id is not proper send msg
+        if(err.kind === 'ObjectId')
+            return res.status(404).json({ msg : 'Post not found' });
+        
+        res.status(500).send('Server Error');
+    }
+});
+
+
+//@route    DELETE api/posts/:id
+//@desc     Delete a post
+//@access   Private
+router.delete('/:id', auth, async (req, res) => {
+    try{
+        // Find the post by id
+        const post = await Post.findById(req.params.id);
+
+        // If not found, then send msg
+        if(!post)
+        return res.status(404).json({ msg : 'Post not found' });
+
+        // Check user to see if the user who wants to delete the post owns the post or not
+        // If not, then send msg
+        if(post.user.toString() !== req.user.id){
+            return res.status(401).json({ msg : 'User not authorized' });
+        }
+
+        // Else, delete the post
+        await post.remove();
+
+        res.json({ msg : 'Post removed' });
+    }
+    catch(err){
+        console.log(err.message);
+
+        // If id is not proper send msg
+        if(err.kind === 'ObjectId')
+            return res.status(404).json({ msg : 'Post not found' });
+        
+        res.status(500).send('Server Error');
+    }
+});
+
 module.exports = router;
