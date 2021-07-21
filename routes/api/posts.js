@@ -150,7 +150,7 @@ router.put('/like/:id', auth, async (req, res) => {
         // Save the post
         await post.save();
 
-        // Send back the post
+        // Send back the likes
         res.json(post.likes);
     }
     catch(err){
@@ -188,8 +188,86 @@ router.put('/unlike/:id', auth, async (req, res) => {
         // Save the post
         await post.save();
 
-        // Send back the post
+        // Send back the likes
         res.json(post.likes);
+    }
+    catch(err){
+        console.log(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+
+//@route    POST api/posts/comment/:id
+//@desc     Comment on a post
+//@access   Private
+router.post('/comment/:id', [auth, [
+    // Check if the required fields are added or not
+    check('text', 'Text is required').not().isEmpty()
+]], async (req, res) => {
+
+    // save validation results
+    const errors = validationResult(req);
+
+    // If error send error array
+    if(!errors.isEmpty())
+        return res.status(400).json({ errors : errors.array() });
+
+    try{
+        // Find the user and post
+        const user = await User.findById(req.user.id).select('-password');
+        const post = await Post.findById(req.params.id);
+
+        // Create a new comment
+        const newComment = { text : req.body.text, name : user.name, avatar : user.avatar, user : req.user.id };
+
+        // Add the comment
+        post.comments.unshift(newComment);
+
+        // Save the post
+        await post.save();
+
+        // Send back the comments
+        res.json(post.comments);
+    }
+    catch(err){
+        console.log(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+
+//@route    DELETE api/posts/comment/:post_id/:comment_id
+//@desc     Delete a comment
+//@access   Private
+router.delete('/comment/:post_id/:comment_id', auth, async (req, res) => {
+    try{
+        // Find the post
+        const post = await Post.findById(req.params.post_id);
+
+        // Pull out comment from the post
+        const comment = post.comments.find(comment => comment.id === req.params.comment_id);
+
+        // Make sure comment exists
+        if(!comment)
+            return res.status(404).json({ msg : 'Comment does not exist' });
+
+        // Check if the user is the owner of the comment to delete it
+        // If not, then send the msg
+        if(comment.user.toString() !== req.user.id)
+            return res.status(401).json({ msg : 'User not authorized' });
+
+        // If yes, then get the removeIndex of comment
+        const removeIndex = post.comments.map(comment => comment.user.toString()).indexOf(req.user.id);
+
+        // Delete the comment
+        post.comments.splice(removeIndex, 1);
+
+        // Save the post
+        await post.save();
+
+        // Send back the comments
+        res.json(post.comments);
     }
     catch(err){
         console.log(err.message);
