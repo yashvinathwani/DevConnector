@@ -3,6 +3,7 @@ import {
     POST_ERROR,
     UPDATE_LIKES,
     DELETE_POST,
+    ADD_POST,
 } from '../actions/types';
 
 const initialState = {
@@ -12,7 +13,7 @@ const initialState = {
     error: {},
 };
 
-export default function postRouter(state = initialState, action) {
+export default function (state = initialState, action) {
     const { type, payload } = action;
 
     switch (type) {
@@ -20,6 +21,12 @@ export default function postRouter(state = initialState, action) {
             return {
                 ...state,
                 posts: payload,
+                loading: false,
+            };
+        case ADD_POST:
+            return {
+                ...state,
+                posts: [payload, ...state.posts],
                 loading: false,
             };
         case POST_ERROR:
