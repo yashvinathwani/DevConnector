@@ -20,6 +20,7 @@ export default function authReducer(state = initialState, action) {
     const { type, payload } = action;
     switch (type) {
         case USER_LOADED:
+            console.log('Auth : ' + payload.name);
             return {
                 ...state,
                 isAuthenticated: true,

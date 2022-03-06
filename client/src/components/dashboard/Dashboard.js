@@ -19,7 +19,7 @@ const Dashboard = ({
     }, [getCurrentProfile]);
 
     return loading && profile === null ? (
-        <i class='fa fa-spinner fa-spin fa-4x'></i>
+        <i className='fa fa-spinner fa-spin fa-4x'></i>
     ) : (
         <Fragment>
             <h1 className='large text-primary'>Dashboard</h1>
