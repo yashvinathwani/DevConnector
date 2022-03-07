@@ -14,7 +14,7 @@ const Post = ({ getPost, post: { post, loading }, match }) => {
     }, [getPost, match.params.id]);
 
     return loading || post === null ? (
-        <i class='fa fa-spinner fa-spin fa-4x'></i>
+        <i className='fa fa-spinner fa-spin fa-4x'></i>
     ) : (
         <Fragment>
             <Link to='/posts' className='btn'>

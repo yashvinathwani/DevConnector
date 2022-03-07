@@ -13,7 +13,7 @@ const Profiles = ({ getProfiles, profile: { profiles, loading } }) => {
     return (
         <Fragment>
             {loading ? (
-                <i class='fa fa-spinner fa-spin fa-4x'></i>
+                <i className='fa fa-spinner fa-spin fa-4x'></i>
             ) : (
                 <Fragment>
                     <h1 className='large text-primary'>Developers</h1>
